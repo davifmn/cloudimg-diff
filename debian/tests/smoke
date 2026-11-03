@@ -1,0 +1,23 @@
+#!/bin/sh
+# Offline smoke test of the installed package (no network needed).
+set -eu
+
+cloudimg-diff --version
+
+cloudimg-diff compare-versions 1.0~rc1 lt 1.0
+cloudimg-diff compare-versions 1:0.1 gt 2.0
+
+tmp="$(mktemp -d)"
+trap 'rm -rf "$tmp"' EXIT
+printf 'apt\t2.7.14build2\ncurl\t8.5.0-2ubuntu10.1\nvim\t2:9.1.0016-1ubuntu7\n' > "$tmp/old.manifest"
+printf 'apt\t2.8.3\ncurl\t8.5.0-2ubuntu10.1\nhtop\t3.3.0-4build1\n' > "$tmp/new.manifest"
+
+cloudimg-diff files "$tmp/old.manifest" "$tmp/new.manifest" | tee "$tmp/out"
+grep -q '1 upgraded, 0 downgraded, 1 added, 1 removed, 1 unchanged' "$tmp/out"
+
+# --exit-code must return 1 when the manifests differ.
+if cloudimg-diff files --exit-code "$tmp/old.manifest" "$tmp/new.manifest" >/dev/null; then
+    echo "expected exit status 1" >&2
+    exit 1
+fi
+echo "smoke test passed"

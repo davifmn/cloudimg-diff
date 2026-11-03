@@ -1,0 +1,30 @@
+Source: cloudimg-diff
+Section: admin
+Priority: optional
+Maintainer: Davi Fraga <davifmn@gmail.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ dh-python,
+ pybuild-plugin-pyproject,
+ python3-all,
+ python3-setuptools,
+ python3-pytest <!nocheck>,
+Standards-Version: 4.6.2
+Homepage: https://github.com/davifmn/cloudimg-diff
+Vcs-Browser: https://github.com/davifmn/cloudimg-diff
+Vcs-Git: https://github.com/davifmn/cloudimg-diff.git
+Rules-Requires-Root: no
+
+Package: cloudimg-diff
+Architecture: all
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+Description: compare package manifests of Ubuntu cloud image builds
+ cloudimg-diff downloads the package manifests that are published next to
+ every Ubuntu cloud image and shows which packages were upgraded,
+ downgraded, added or removed between two builds.
+ .
+ It can also compare the packages installed on the running machine with
+ the image it was launched from, which helps spot configuration drift.
+ Version comparison follows the same rules as dpkg.

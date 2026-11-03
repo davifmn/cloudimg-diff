@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+
+export PYBUILD_NAME=cloudimg-diff
+
+%:
+	dh $@ --with python3 --buildsystem=pybuild
+
+# Run the test suite against the source tree; it needs no network access.
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	PYTHONPATH=$(CURDIR)/src python3 -m pytest -q -p no:cacheprovider tests
+endif

@@ -1,0 +1,71 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: Tests (Python ${{ matrix.python }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      # dpkg is present on the runner, so the cross-check against
+      # `dpkg --compare-versions` runs here instead of being skipped.
+      - run: pytest -v
+
+  deb:
+    name: Debian package
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential debhelper dh-python pybuild-plugin-pyproject \
+            python3-all python3-setuptools python3-pytest lintian
+      - name: Build
+        run: dpkg-buildpackage -us -uc -b
+      - name: Lintian
+        run: lintian --fail-on error --display-info --pedantic ../cloudimg-diff_*.changes
+      - name: Install and run the autopkgtest smoke test
+        run: |
+          sudo apt-get install -y ../cloudimg-diff_*_all.deb
+          dpkg -L cloudimg-diff | grep -E 'bin/cloudimg-diff|man1'
+          debian/tests/smoke
+      - name: Live check against cloud-images.ubuntu.com
+        run: cloudimg-diff diff noble --only added --only removed
+      - run: mkdir dist && cp ../cloudimg-diff_*_all.deb dist/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deb
+          path: dist/*.deb
+
+  snap:
+    name: Snap
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: snapcore/action-build@v1
+        id: build
+      - name: Install and run
+        run: |
+          sudo snap install --dangerous ${{ steps.build.outputs.snap }}
+          cloudimg-diff --version
+          cloudimg-diff compare-versions 1.0~rc1 lt 1.0
+          cloudimg-diff serials noble -n 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: snap
+          path: ${{ steps.build.outputs.snap }}

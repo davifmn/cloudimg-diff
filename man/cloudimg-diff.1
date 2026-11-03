@@ -1,0 +1,122 @@
+.TH CLOUDIMG-DIFF 1 "November 2026" "cloudimg-diff 0.1.0" "User Commands"
+.SH NAME
+cloudimg-diff \- compare package manifests of Ubuntu cloud image builds
+.SH SYNOPSIS
+.B cloudimg-diff serials
+.I release
+.RB [ \-n
+.IR N ]
+.br
+.B cloudimg-diff diff
+.I release
+.RI [ old ]
+.RI [ new ]
+.RI [ options ]
+.br
+.B cloudimg-diff files
+.I old.manifest new.manifest
+.RI [ options ]
+.br
+.B cloudimg-diff drift
+.I release
+.RI [ serial ]
+.RI [ options ]
+.br
+.B cloudimg-diff compare-versions
+.I a op b
+.SH DESCRIPTION
+Every Ubuntu cloud image published on cloud-images.ubuntu.com has a
+.I .manifest
+file listing the Debian packages it contains.
+.B cloudimg-diff
+downloads those manifests and reports which packages were upgraded,
+downgraded, added or removed between two builds.
+Versions are compared with the same algorithm as
+.BR dpkg (1).
+.SH COMMANDS
+.TP
+.B serials
+List the most recent release serials of
+.I release
+(a codename such as
+.B noble
+or a version such as
+.BR 24.04 ).
+.TP
+.B diff
+Compare two published builds.
+.I old
+and
+.I new
+are serials (for example
+.BR 20261017 )
+or the aliases
+.BR latest ,
+.B previous
+and
+.BI latest~ N\fR.
+The defaults are
+.B previous
+and
+.BR latest .
+.TP
+.B files
+Compare two manifest files on disk.
+.TP
+.B drift
+Compare the packages installed on this machine (as reported by
+.BR dpkg-query (1))
+with the manifest of the image it was launched from.
+.TP
+.B compare-versions
+Exit with status 0 if the relation
+.I a op b
+holds, 1 otherwise.
+.I op
+is one of
+.BR "lt le eq ne ge gt << <= = >= >>" .
+.SH OPTIONS
+.TP
+.BR \-f ", " \-\-format " " \fItable\fR|\fIjson\fR|\fImarkdown\fR
+Output format. Markdown output is meant for pull requests and release notes.
+.TP
+.BI \-\-only " kind"
+Show only
+.BR added ,
+.BR removed ,
+.B upgraded
+or
+.B downgraded
+packages. May be repeated.
+.TP
+.B \-\-exit\-code
+Exit with status 1 when there are differences, like
+.BR diff (1).
+.TP
+.BR \-a ", " \-\-arch " " \fIarch\fR
+Image architecture (default
+.BR amd64 ).
+.TP
+.B \-\-no\-cache
+Always download manifests instead of using the local cache.
+.SH FILES
+.TP
+.I $XDG_CACHE_HOME/cloudimg-diff/
+Downloaded manifests. A published manifest never changes, so cached copies
+are kept forever. Inside the snap the cache lives in
+.IR $SNAP_USER_COMMON/cache .
+.SH EXIT STATUS
+0 on success, 1 when differences were found and
+.B \-\-exit\-code
+was given (or the relation is false for
+.BR compare-versions ),
+2 on errors.
+.SH EXAMPLES
+.nf
+cloudimg-diff diff noble
+cloudimg-diff diff noble 20241004 latest \-\-only upgraded \-f markdown
+cloudimg-diff drift noble \-\-only added
+.fi
+.SH SEE ALSO
+.BR dpkg (1),
+.BR dpkg-query (1)

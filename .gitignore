@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+# Debian build leftovers
+.pybuild/
+debian/.debhelper/
+debian/cloudimg-diff/
+debian/cloudimg-diff.substvars
+debian/cloudimg-diff.*.debhelper
+debian/debhelper-build-stamp
+debian/files
+# Snap build leftovers
+*.snap
+parts/
+stage/
+prime/

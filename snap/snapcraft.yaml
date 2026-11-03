@@ -1,0 +1,28 @@
+name: cloudimg-diff
+base: core24
+version: "0.1.0"
+summary: Compare package manifests of Ubuntu cloud image builds
+description: |
+  cloudimg-diff downloads the package manifests that are published next to
+  every Ubuntu cloud image and shows which packages were upgraded, downgraded,
+  added or removed between two builds. It can also compare the packages
+  installed on the running machine with the image it was launched from.
+license: MIT
+grade: stable
+confinement: strict
+
+platforms:
+  amd64:
+  arm64:
+
+apps:
+  cloudimg-diff:
+    command: bin/cloudimg-diff
+    plugs:
+      - network
+      - home
+
+parts:
+  cloudimg-diff:
+    plugin: python
+    source: .
